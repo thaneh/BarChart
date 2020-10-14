@@ -7,43 +7,6 @@
 
 import SwiftUI
 
-struct BarChart_Previews: PreviewProvider {
-    static var previews: some View {
-        BarChart()
-    }
-}
-
-struct BarChart: View {
-    @ObservedObject var values = Figures.shared
-    @State var redraw = false
-    @State var visibleBars = 0
-    let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
-    
-    var body: some View {
-        HStack(alignment: .bottom, spacing: 5) {
-            ForEach(0 ..< visibleBars, id: \.self) { index in
-                BarView(width: 20, height: CGFloat(values.numbers[index]),
-                        barIndex: index, animationTime: 1)
-            }
-        }
-        .id(redraw)
-        .font(Fonts.avenirNextCondensedMedium(size: 20))
-        .padding()
-        .frame(width: 205, height: 160, alignment: .leading)
-        .border(Color.black)
-        .onTapGesture {
-            values.randomize()
-            visibleBars = 0
-            redraw.toggle()
-        }
-        .onReceive(timer) { _ in
-            if visibleBars < 7 {
-                visibleBars += 1
-            }
-        }
-    }
-}
-
 struct BarView: View {
     let width: CGFloat
     let height: CGFloat
@@ -66,6 +29,7 @@ struct BarView: View {
                 .fill(color)
                 .frame(width: width, height: interimHeight)
             Text(String(Int(height)))
+                .padding(.top, -3)
                 .opacity(labelOpacity)
         }
         .onAppear {
@@ -74,5 +38,41 @@ struct BarView: View {
                 interimHeight = height
             }
         }
+    }
+}
+
+struct BarChart: View {
+    @ObservedObject var values = Figures.shared
+    @State var visibleBars = 0
+    let timer = Timer.publish(every: 0.6, on: .main,
+                              in: .common).autoconnect()
+    
+    var body: some View {
+        HStack(alignment: .bottom, spacing: 5) {
+            ForEach(0 ..< visibleBars, id: \.self) { index in
+                BarView(width: 20,
+                        height: CGFloat(values.numbers[index]),
+                        barIndex: index, animationTime: 0.6)
+            }
+        }
+        .font(Fonts.avenirNextCondensedMedium(size: 20))
+        .padding()
+        .frame(width: 205, height: 160, alignment: .leading)
+        .border(Color.black)
+        .onTapGesture {
+            values.randomize()
+            visibleBars = 0
+        }
+        .onReceive(timer) { _ in
+            if visibleBars < 7 {
+                visibleBars += 1
+            }
+        }
+    }
+}
+
+struct BarChart_Previews: PreviewProvider {
+    static var previews: some View {
+        BarChart()
     }
 }
