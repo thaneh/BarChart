@@ -9,7 +9,7 @@ import SwiftUI
 
 struct ContentView: View {
     var body: some View {
-        SwiftUIView(gate: "open")
+        BarChart()
     }
 }
 
