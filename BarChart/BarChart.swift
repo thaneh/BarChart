@@ -7,16 +7,14 @@
 
 import SwiftUI
 
-struct BarView: View {
+struct AnimatedBar: View {
     var vertical = true
     let barWidth: CGFloat
     let length: CGFloat
-    let graphLength: CGFloat
+    let fullLength: CGFloat
     let barIndex: Int
     let animationTime: TimeInterval
-    @State private var interimLength = CGFloat(0)
-    @State private var labelOpacity = 0.0
-    let textSize = CGFloat(30)
+    @Binding var interimLength: CGFloat
     
     var color: Color {
         let hue2U = 360.0 / 14.0 * Double(barIndex)
@@ -25,52 +23,72 @@ struct BarView: View {
         return color
     }
     
-    var finalHeight: CGFloat {
-        (graphLength - textSize) * length / 100
+    var finalLength: CGFloat {
+        fullLength * length / 100
     }
     
     var body: some View {
-        if vertical {
-            VStack {
+        Group {
+            if vertical {
                 Rectangle()
                     .fill(color)
                     .frame(width: barWidth, height: interimLength)
-                Text(String(Int(length)))
-                    .padding(.top, -5)
-                    .frame(height: textSize)
-                    .opacity(labelOpacity)
-            }
-            .offset(y: (graphLength - textSize - interimLength) / 2)
-            .onAppear {
-                withAnimation(.linear(duration: animationTime)) {
-                    labelOpacity = 1
-                    interimLength = finalHeight
-                }
-            }
-            .onChange(of: graphLength, perform: { _ in
-                print("graphLength \(graphLength)")
-                interimLength = finalHeight
-            })
-        } else {
-            HStack {
-                Text(String(Int(length)))
-                    .frame(width: textSize)
-                    .opacity(labelOpacity)
+            } else {
                 Rectangle()
                     .fill(color)
                     .frame(width: interimLength, height: barWidth)
             }
-            .offset(x: interimLength / 2 - (graphLength - textSize) / 2)//(graphLength - textSize - interimLength) / 2)
-            .onAppear {
-                withAnimation(.linear(duration: animationTime)) {
-                    labelOpacity = 1
-                    interimLength = finalHeight
-                }
+        }
+        .onAppear {
+            withAnimation(.linear(duration: animationTime)) {
+                interimLength = finalLength
             }
-            .onChange(of: graphLength, perform: { _ in
-                print("graphLength \(graphLength)")
-                interimLength = finalHeight
-            })
+        }
+        .onChange(of: fullLength, perform: { _ in
+            print("fullLength \(fullLength)")
+            interimLength = finalLength
+        })
+    }
+}
+
+struct BarView: View {
+    var vertical = true
+    let barWidth: CGFloat
+    let length: CGFloat
+    let graphLength: CGFloat
+    let barIndex: Int
+    let animationTime: TimeInterval
+    @State private var barLength = CGFloat(0)
+    @State private var labelOpacity = 0.0
+    let textSize = CGFloat(30)
+    
+    var body: some View {
+        Group {
+            if vertical {
+                VStack {
+                    AnimatedBar(vertical: vertical, barWidth: barWidth, length: length, fullLength: graphLength - textSize,
+                                barIndex: barIndex, animationTime: animationTime, interimLength: $barLength)
+                    Text(String(Int(length)))
+                        .padding(.top, -5)
+                        .frame(height: textSize)
+                        .opacity(labelOpacity)
+                }
+                .offset(y: (graphLength - textSize - barLength) / 2)
+            } else {
+                HStack {
+                    Text(String(Int(length)))
+                        .frame(width: textSize)
+                        .opacity(labelOpacity)
+                    AnimatedBar(vertical: vertical, barWidth: barWidth, length: length, fullLength: graphLength - textSize,
+                                barIndex: barIndex, animationTime: animationTime, interimLength: $barLength)
+                }
+                .offset(x: barLength / 2 - (graphLength - textSize) / 2)
+            }
+        }
+        .onAppear {
+            withAnimation(.linear(duration: animationTime)) {
+                labelOpacity = 1
+            }
         }
     }
 }
