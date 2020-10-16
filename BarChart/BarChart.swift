@@ -12,7 +12,7 @@ struct AnimatedBar: View {
     let length: CGFloat
     let barIndex: Int
     let animationTime: TimeInterval
-    @Binding var interimLength: CGFloat
+    @State private var interimLength = CGFloat(0)
     
     var color: Color {
         let hue2U = 360.0 / 14.0 * Double(barIndex)
@@ -62,7 +62,6 @@ struct BarView: View {
     let length: CGFloat
     let barIndex: Int
     let animationTime: TimeInterval
-    @State private var barLength = CGFloat(0)
     @State private var labelOpacity = 0.0
     let textSize = CGFloat(30)
     
@@ -71,7 +70,7 @@ struct BarView: View {
             if vertical {
                 VStack {
                     AnimatedBar(vertical: vertical, length: length,
-                                barIndex: barIndex, animationTime: animationTime, interimLength: $barLength)
+                                barIndex: barIndex, animationTime: animationTime)
                         .frame(width: geo.size.width, height: geo.size.height - textSize)
                     Text(String(Int(length)))
                         .padding(.top, -5)
@@ -84,7 +83,7 @@ struct BarView: View {
                         .frame(width: textSize)
                         .opacity(labelOpacity)
                     AnimatedBar(vertical: vertical, length: length,
-                                barIndex: barIndex, animationTime: animationTime, interimLength: $barLength)
+                                barIndex: barIndex, animationTime: animationTime)
                         .frame(width: geo.size.width - textSize, height: geo.size.height)
                 }
             }
