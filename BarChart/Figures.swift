@@ -13,7 +13,7 @@ final class Figures: ObservableObject {
     
     func randomize() {
         for index in 0...6 {
-            numbers[index] = Int.random(in: 10...90)
+            numbers[index] = Int.random(in: 1...100)
         }
     }
 }
