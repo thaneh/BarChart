@@ -11,10 +11,11 @@ struct ContentView: View {
     @ObservedObject var values = Figures.shared
     @State private var width = CGFloat(205)
     @State private var height = CGFloat(160)
+    @State private var vertical = true
     
     var body: some View {
         VStack {
-            BarChart()
+            BarChart(vertical: vertical)
                 .frame(width: width, height: height)
             
             Button("Random Size") {
@@ -23,10 +24,20 @@ struct ContentView: View {
             }
             .padding()
             
-            Slider(value: $height, in: 100...350) {
-                Text("Size \(height)")
+            Toggle("Vertical", isOn: $vertical)
+                .padding()
+            
+            VStack {
+                Text("width")
+                    .padding(.bottom, -10)
+                Slider(value: $width, in: 100...400)
             }
-            .padding()
+            
+            VStack {
+                Text("height")
+                    .padding(.bottom, -10)
+                Slider(value: $height, in: 100...350)
+            }
         }
     }
 }

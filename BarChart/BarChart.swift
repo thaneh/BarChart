@@ -8,14 +8,15 @@
 import SwiftUI
 
 struct BarView: View {
-    let width: CGFloat
-    let height: CGFloat
-    let graphHeight: CGFloat
+    var vertical = true
+    let barWidth: CGFloat
+    let length: CGFloat
+    let graphLength: CGFloat
     let barIndex: Int
     let animationTime: TimeInterval
-    @State private var interimHeight = CGFloat(0)
+    @State private var interimLength = CGFloat(0)
     @State private var labelOpacity = 0.0
-    let textHeight = CGFloat(20)
+    let textSize = CGFloat(30)
     
     var color: Color {
         let hue2U = 360.0 / 14.0 * Double(barIndex)
@@ -25,36 +26,59 @@ struct BarView: View {
     }
     
     var finalHeight: CGFloat {
-        (graphHeight - textHeight) * height / 100
+        (graphLength - textSize) * length / 100
     }
     
     var body: some View {
-        VStack {
-            Rectangle()
-                .fill(color)
-                .frame(width: width, height: interimHeight)
-            Text(String(Int(height)))
-                .padding(.top, -5)
-                .frame(height: textHeight)
-                .opacity(labelOpacity)
-        }
-        .offset(y: (graphHeight - textHeight - interimHeight) / 2)
-        .onAppear {
-            withAnimation(.linear(duration: animationTime)) {
-                labelOpacity = 1
-                interimHeight = finalHeight
+        if vertical {
+            VStack {
+                Rectangle()
+                    .fill(color)
+                    .frame(width: barWidth, height: interimLength)
+                Text(String(Int(length)))
+                    .padding(.top, -5)
+                    .frame(height: textSize)
+                    .opacity(labelOpacity)
             }
+            .offset(y: (graphLength - textSize - interimLength) / 2)
+            .onAppear {
+                withAnimation(.linear(duration: animationTime)) {
+                    labelOpacity = 1
+                    interimLength = finalHeight
+                }
+            }
+            .onChange(of: graphLength, perform: { _ in
+                print("graphLength \(graphLength)")
+                interimLength = finalHeight
+            })
+        } else {
+            HStack {
+                Text(String(Int(length)))
+                    .frame(width: textSize)
+                    .opacity(labelOpacity)
+                Rectangle()
+                    .fill(color)
+                    .frame(width: interimLength, height: barWidth)
+            }
+            .offset(x: interimLength / 2 - (graphLength - textSize) / 2)//(graphLength - textSize - interimLength) / 2)
+            .onAppear {
+                withAnimation(.linear(duration: animationTime)) {
+                    labelOpacity = 1
+                    interimLength = finalHeight
+                }
+            }
+            .onChange(of: graphLength, perform: { _ in
+                print("graphLength \(graphLength)")
+                interimLength = finalHeight
+            })
         }
-        .onChange(of: graphHeight, perform: { _ in
-            print("graphHeight \(graphHeight)")
-            interimHeight = finalHeight
-        })
     }
 }
 
 struct BarChart: View {
-    @ObservedObject var values = Figures.shared
-    @State var visibleBars = 0
+    @ObservedObject private var values = Figures.shared
+    var vertical = true
+    @State private var visibleBars = 0
     let timer = Timer.publish(every: 0.6, on: .main,
                               in: .common).autoconnect()
     let sideSpacing = CGFloat(10)
@@ -80,12 +104,23 @@ struct BarChart: View {
                     .stroke(Color.black)
                 
                 ForEach(0 ..< visibleBars, id: \.self) { index in
-                    BarView(width: barWidth(forSize: geo.size.width),
-                            height: CGFloat(values.numbers[index]),
-                            graphHeight: geo.size.height,
-                            barIndex: index, animationTime: 0.6)
-                        .position(x: barPosition(forSize: geo.size.width, index: index),
-                                  y: geo.size.height / 2)
+                    if vertical {
+                        BarView(vertical: vertical,
+                                barWidth: barWidth(forSize: geo.size.width),
+                                length: CGFloat(values.numbers[index]),
+                                graphLength: geo.size.height,
+                                barIndex: index, animationTime: 0.6)
+                            .position(x: barPosition(forSize: geo.size.width, index: index),
+                                      y: geo.size.height / 2)
+                    } else {
+                        BarView(vertical: vertical,
+                                barWidth: barWidth(forSize: geo.size.height),
+                                length: CGFloat(values.numbers[index]),
+                                graphLength: geo.size.width,
+                                barIndex: index, animationTime: 0.6)
+                            .position(x: geo.size.width / 2,
+                                      y: barPosition(forSize: geo.size.height, index: index))
+                    }
                 }
                 .font(Fonts.avenirNextCondensedMedium(size: 20))
                 .onTapGesture {
@@ -96,7 +131,7 @@ struct BarChart: View {
             .frame(width: geo.size.width, height: geo.size.height)
         }
         .onReceive(timer) { _ in
-            if visibleBars < 7 {
+            if visibleBars < values.numbers.count {
                 visibleBars += 1
             }
         }

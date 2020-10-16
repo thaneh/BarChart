@@ -12,8 +12,10 @@ final class Figures: ObservableObject {
     static var shared = Figures()
     
     func randomize() {
-        for index in 0...6 {
-            numbers[index] = Int.random(in: 1...100)
+        numbers = []
+        let quantity = Int.random(in: 2...10)
+        for _ in 0..<quantity {
+            numbers.append(Int.random(in: 1...100))
         }
     }
 }
