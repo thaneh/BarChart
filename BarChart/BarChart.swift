@@ -9,9 +9,7 @@ import SwiftUI
 
 struct AnimatedBar: View {
     var vertical = true
-    let barWidth: CGFloat
     let length: CGFloat
-    let fullLength: CGFloat
     let barIndex: Int
     let animationTime: TimeInterval
     @Binding var interimLength: CGFloat
@@ -23,39 +21,45 @@ struct AnimatedBar: View {
         return color
     }
     
-    var finalLength: CGFloat {
-        fullLength * length / 100
+    func finalLength(inSize size: CGFloat) -> CGFloat {
+        size * length / 100
     }
     
     var body: some View {
-        Group {
+        GeometryReader { geo in
             if vertical {
                 Rectangle()
                     .fill(color)
-                    .frame(width: barWidth, height: interimLength)
+                    .offset(y: geo.size.height - interimLength)
+                    .frame(height: interimLength)
+                    .onAppear {
+                        withAnimation {
+                            interimLength = finalLength(inSize: geo.size.height)
+                        }
+                    }
+                    .onChange(of: geo.size.height) { _ in
+                        interimLength = finalLength(inSize: geo.size.height)
+                    }
             } else {
                 Rectangle()
                     .fill(color)
-                    .frame(width: interimLength, height: barWidth)
+                    .frame(width: interimLength)
+                    .onAppear {
+                        withAnimation {
+                            interimLength = finalLength(inSize: geo.size.width)
+                        }
+                    }
+                    .onChange(of: geo.size.width) { _ in
+                        interimLength = finalLength(inSize: geo.size.width)
+                    }
             }
         }
-        .onAppear {
-            withAnimation(.linear(duration: animationTime)) {
-                interimLength = finalLength
-            }
-        }
-        .onChange(of: fullLength, perform: { _ in
-            print("fullLength \(fullLength)")
-            interimLength = finalLength
-        })
     }
 }
 
 struct BarView: View {
     var vertical = true
-    let barWidth: CGFloat
     let length: CGFloat
-    let graphLength: CGFloat
     let barIndex: Int
     let animationTime: TimeInterval
     @State private var barLength = CGFloat(0)
@@ -63,26 +67,26 @@ struct BarView: View {
     let textSize = CGFloat(30)
     
     var body: some View {
-        Group {
+        GeometryReader { geo in
             if vertical {
                 VStack {
-                    AnimatedBar(vertical: vertical, barWidth: barWidth, length: length, fullLength: graphLength - textSize,
+                    AnimatedBar(vertical: vertical, length: length,
                                 barIndex: barIndex, animationTime: animationTime, interimLength: $barLength)
+                        .frame(width: geo.size.width, height: geo.size.height - textSize)
                     Text(String(Int(length)))
                         .padding(.top, -5)
                         .frame(height: textSize)
                         .opacity(labelOpacity)
                 }
-                .offset(y: (graphLength - textSize - barLength) / 2)
             } else {
                 HStack {
                     Text(String(Int(length)))
                         .frame(width: textSize)
                         .opacity(labelOpacity)
-                    AnimatedBar(vertical: vertical, barWidth: barWidth, length: length, fullLength: graphLength - textSize,
+                    AnimatedBar(vertical: vertical, length: length,
                                 barIndex: barIndex, animationTime: animationTime, interimLength: $barLength)
+                        .frame(width: geo.size.width - textSize, height: geo.size.height)
                 }
-                .offset(x: barLength / 2 - (graphLength - textSize) / 2)
             }
         }
         .onAppear {
@@ -120,22 +124,20 @@ struct BarChart: View {
             ZStack {
                 Rectangle()
                     .stroke(Color.black)
-                
+
                 ForEach(0 ..< visibleBars, id: \.self) { index in
                     if vertical {
                         BarView(vertical: vertical,
-                                barWidth: barWidth(forSize: geo.size.width),
                                 length: CGFloat(values.numbers[index]),
-                                graphLength: geo.size.height,
                                 barIndex: index, animationTime: 0.6)
+                            .frame(width: barWidth(forSize: geo.size.width), height: geo.size.height)
                             .position(x: barPosition(forSize: geo.size.width, index: index),
                                       y: geo.size.height / 2)
                     } else {
                         BarView(vertical: vertical,
-                                barWidth: barWidth(forSize: geo.size.height),
                                 length: CGFloat(values.numbers[index]),
-                                graphLength: geo.size.width,
                                 barIndex: index, animationTime: 0.6)
+                            .frame(width: geo.size.width, height: barWidth(forSize: geo.size.height))
                             .position(x: geo.size.width / 2,
                                       y: barPosition(forSize: geo.size.height, index: index))
                     }
