@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		F00ED10C2545D11F0055CEBF /* MarksBarChartRace.swift in Sources */ = {isa = PBXBuildFile; fileRef = F00ED10B2545D11F0055CEBF /* MarksBarChartRace.swift */; };
 		F0FB0B7C2536B1F900FE3D94 /* BarChartApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0FB0B7B2536B1F900FE3D94 /* BarChartApp.swift */; };
 		F0FB0B7E2536B1F900FE3D94 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0FB0B7D2536B1F900FE3D94 /* ContentView.swift */; };
 		F0FB0B802536B1FB00FE3D94 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F0FB0B7F2536B1FB00FE3D94 /* Assets.xcassets */; };
@@ -17,6 +18,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		F00ED10B2545D11F0055CEBF /* MarksBarChartRace.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarksBarChartRace.swift; sourceTree = "<group>"; };
 		F0FB0B782536B1F900FE3D94 /* BarChart.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BarChart.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		F0FB0B7B2536B1F900FE3D94 /* BarChartApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarChartApp.swift; sourceTree = "<group>"; };
 		F0FB0B7D2536B1F900FE3D94 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -60,6 +62,7 @@
 			children = (
 				F0FB0B7B2536B1F900FE3D94 /* BarChartApp.swift */,
 				F0FB0B7D2536B1F900FE3D94 /* ContentView.swift */,
+				F00ED10B2545D11F0055CEBF /* MarksBarChartRace.swift */,
 				F0FB0B8B2536B20D00FE3D94 /* BarChart.swift */,
 				F0FB0B922536B5F300FE3D94 /* Figures.swift */,
 				F0FB0B8E2536B4AA00FE3D94 /* Fonts.swift */,
@@ -149,6 +152,7 @@
 			files = (
 				F0FB0B8F2536B4AA00FE3D94 /* Fonts.swift in Sources */,
 				F0FB0B932536B5F300FE3D94 /* Figures.swift in Sources */,
+				F00ED10C2545D11F0055CEBF /* MarksBarChartRace.swift in Sources */,
 				F0FB0B7E2536B1F900FE3D94 /* ContentView.swift in Sources */,
 				F0FB0B8C2536B20D00FE3D94 /* BarChart.swift in Sources */,
 				F0FB0B7C2536B1F900FE3D94 /* BarChartApp.swift in Sources */,
