@@ -168,12 +168,6 @@ struct BarRow: View {
         }.opacity(fader)
         .offset(y: offset - 84)
     }
-    
-    func doColor(shade: CGFloat) -> Color {
-        let hue2U:Double = Double((shade / 90 * 360))
-        let color = Color.init(hue: hue2U/360, saturation: 0.66, brightness: 0.66, opacity: 1.0)
-        return color
-    }
 }
 
 struct MarksBarChartRace: View {
