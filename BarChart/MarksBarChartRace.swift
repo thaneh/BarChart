@@ -11,7 +11,7 @@ import Combine
 
 let updateBar = PassthroughSubject<BarData, Never>()
 
-final class MarksFigures: ObservableObject {
+final class MarksFigures {
     static var shared = MarksFigures()
     var bars = [BarData]()
     
@@ -94,7 +94,7 @@ struct BarData {
 }
 
 struct SwiftUIViewB: View {
-    @ObservedObject var values = MarksFigures.shared
+    let values = MarksFigures.shared
     let colors: [Color] = [.red,.orange,.yellow,.blue,.green,.pink,.purple]
     @State private var visibleBars = 1
     
