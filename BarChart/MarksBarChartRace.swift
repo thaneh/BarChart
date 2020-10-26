@@ -9,12 +9,11 @@
 import SwiftUI
 import Combine
 
-let newPosition = PassthroughSubject<(String,Int),Never>()
-let changeFigure = PassthroughSubject<(String,Int),Never>()
+let updateBar = PassthroughSubject<BarData, Never>()
 
 final class MarksFigures: ObservableObject {
     static var shared = MarksFigures()
-    @Published var bars = [BarData]()
+    var bars = [BarData]()
     
     var activityTimer: Timer?
     
@@ -37,47 +36,40 @@ final class MarksFigures: ObservableObject {
     
     func doActivity() {
         addRandomIncrements()
-        sendValues()
-        
         newOrder()
-        sendNewPositions()
+        
+        sendUpdates()
+        
+        reduce()
     }
     
-    func sendNewPositions() {
+    func sendUpdates() {
         bars.forEach {
-            newPosition.send(($0.text, $0.position))
+            updateBar.send($0)
         }
     }
     
-    func sendValues() {
-        bars.forEach {
-            changeFigure.send(($0.text, $0.numbers))
-        }
-    }
-    
-    func newOrder() {
-        var newBar = bars
-        newBar.sort { $0.numbers > $1.numbers }
-        for index in 0..<bars.count {
-            if let i = bars.firstIndex(where: { $0.text == newBar[index].text }) {
-                bars[i].position = index
-                if bars[i].numbers > 100 {
-                    bars[i].numbers = Int.random(in: 10...30)
-                }
+    func reduce() {
+        bars.enumerated().forEach { index, bar in
+            if bar.numbers > 100 {
+                bars[index].numbers = Int.random(in: 10...30)
             }
         }
     }
     
-    // Not used
-    func newValue(element: String, figure: Int) {
-        if let i = bars.firstIndex(where: { $0.text == element }) {
-            bars[i].numbers = figure
-            changeFigure.send((bars[i].text,figure))
+    func newOrder() {
+        let sortedBars = bars.sorted { $0.numbers > $1.numbers }
+        sortedBars.enumerated().forEach { index, bar in
+            if let barIndex = bars.firstIndex(where: { $0.text == bar.text }) {
+                bars[barIndex].position = index
+            }
         }
     }
     
     func addRandomIncrements() {
-        bars = bars.map { $0.incremented(by: Int.random(in: 1...10)) }
+        for index in 0 ..< bars.count {
+            bars[index].numbers += Int.random(in: 1...10)
+        }
     }
 }
 
@@ -85,19 +77,19 @@ struct BarData {
     let text: String
     var numbers: Int
     var position: Int
-    var color = Color.clear
+    let color: Color
     
     init(text: String, numbers: Int, position: Int) {
         self.text = text
         self.numbers = numbers
         self.position = position
+        self.color = BarData.doColor(shade: CGFloat(numbers))
     }
     
-    func incremented(by amount: Int) -> BarData {
-        var element = BarData(text: text, numbers: numbers + amount,
-                              position: position)
-        element.color = color
-        return element
+    static func doColor(shade: CGFloat) -> Color {
+        let hue2U:Double = Double((shade / 90 * 360))
+        let color = Color.init(hue: hue2U/360, saturation: 0.66, brightness: 0.66, opacity: 1.0)
+        return color
     }
 }
 
@@ -113,7 +105,8 @@ struct SwiftUIViewB: View {
         
         ZStack(alignment: .leading) {
             ForEach(0...visibleBars - 1, id: \.self) { value in
-                BarRow(barText: values.bars[value].text,
+                BarRow(barData: values.bars[value],
+                       barText: values.bars[value].text,
                        barHeight: CGFloat(values.bars[value].numbers),
                        position: value)
             }
@@ -133,6 +126,7 @@ struct SwiftUIViewB: View {
 
 struct BarRow: View {
     let barWidth = 24
+    let barData: BarData
     let barText: String
     @State private var redraw = false
     @State var barHeight: CGFloat
@@ -146,11 +140,11 @@ struct BarRow: View {
     
     var body: some View {
         HStack {
-            Text(barText)
+            Text(barData.text)
                 .frame(width: 80, alignment: .topTrailing)
                 .onAppear {
                     if fresh {
-                        offset = CGFloat(position * barWidth)
+                        offset = CGFloat(barData.position * barWidth)
                         freshColor = doColor(shade: barHeight)
                     }
                 }
@@ -165,6 +159,7 @@ struct BarRow: View {
                 .frame(width: 24, alignment: .topTrailing)
                 .background(Color.yellow)
                 .onAppear {
+                    print("onAppear for \(barText)")
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                         withAnimation(.linear(duration: 0.5)) {
                             growMore = barHeight
@@ -172,20 +167,16 @@ struct BarRow: View {
                         }
                     }
                 }.opacity(showMore)
-                .onReceive(changeFigure) { name, value in
-                    guard barText == name else { return }
-                    fresh = false
-                    barHeight = CGFloat(value)
-                    redraw.toggle()
-                }
-                .onReceive(newPosition) { name, position in
-                    guard barText == name else { return }
-                    withAnimation(.linear(duration: 0.8)) {
-                        offset = CGFloat(position * barWidth)
+                .onReceive(updateBar) { bar in
+                    guard bar.text == barData.text else { return }
+                    let animationTime = growMore > CGFloat(bar.numbers) ? 0.9 : 0.5
+                    withAnimation(.linear(duration: animationTime)) {
+                        barHeight = CGFloat(bar.numbers)
+                        growMore = CGFloat(bar.numbers)
+                        offset = CGFloat(bar.position * barWidth)
                     }
                 }
         }.opacity(fader)
-        .id(redraw)
         .offset(y: offset - 84)
     }
     
