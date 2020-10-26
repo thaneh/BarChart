@@ -105,10 +105,7 @@ struct SwiftUIViewB: View {
         
         ZStack(alignment: .leading) {
             ForEach(0...visibleBars - 1, id: \.self) { value in
-                BarRow(barData: values.bars[value],
-                       barText: values.bars[value].text,
-                       barHeight: CGFloat(values.bars[value].numbers),
-                       position: value)
+                BarRow(barData: values.bars[value])
             }
             .onReceive(nextBar) { _ in
                 visibleBars += 1
@@ -127,29 +124,22 @@ struct SwiftUIViewB: View {
 struct BarRow: View {
     let barWidth = 24
     let barData: BarData
-    let barText: String
-    @State private var redraw = false
-    @State var barHeight: CGFloat
+    @State private var barHeight = CGFloat(0)
     @State private var growMore = CGFloat(0)
     @State private var showMore = 0.0
     @State private var fader = Double(1)
-    let position: Int
     @State private var offset = CGFloat(0)
-    @State private var fresh = true
-    @State private var freshColor = Color.clear
     
     var body: some View {
         HStack {
             Text(barData.text)
                 .frame(width: 80, alignment: .topTrailing)
                 .onAppear {
-                    if fresh {
-                        offset = CGFloat(barData.position * barWidth)
-                        freshColor = doColor(shade: barHeight)
-                    }
+                    offset = CGFloat(barData.position * barWidth)
+                    barHeight = CGFloat(barData.numbers)
                 }
             Rectangle()
-                .fill(freshColor)
+                .fill(barData.color)
                 .frame(width: growMore, height: 20)
             Rectangle()
                 .frame(width: 110 - growMore, height: 1)
@@ -159,10 +149,9 @@ struct BarRow: View {
                 .frame(width: 24, alignment: .topTrailing)
                 .background(Color.yellow)
                 .onAppear {
-                    print("onAppear for \(barText)")
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                         withAnimation(.linear(duration: 0.5)) {
-                            growMore = barHeight
+                            growMore = CGFloat(barData.numbers)
                             showMore = 1
                         }
                     }
